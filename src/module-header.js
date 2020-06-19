@@ -1,6 +1,7 @@
 /**
  * @file Reflection API Auto generated JS module.
  * @see https://github.com/meena-erian/reflection-api
+ * @author Menas Erian
  * @copyright (C) 2020 Menas Erian
  */
 
