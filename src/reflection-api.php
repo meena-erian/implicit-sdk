@@ -202,7 +202,7 @@ class ServerEndpoint
      */
     public function reflectJS($file = "api.js")
     {
-        $output = file_get_contents("module-header.js");
+        $output = file_get_contents(__DIR__."/module-header.js");
         foreach ($this->_functions as $ServerFunction) {
             $output .= self::JSDoc($ServerFunction["DocComment"]) . "\n";
 
@@ -222,7 +222,7 @@ class ServerEndpoint
                 str_replace(
                     "functionName", 
                     $ServerFunction["name"],
-                    file_get_contents("function-template.js")
+                    file_get_contents(__DIR__."/function-template.js")
                 )
             );
 

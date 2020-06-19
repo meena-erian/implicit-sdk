@@ -1,6 +1,7 @@
 /**
  * @file Reflection API Auto generated JS module.
- * @copyright (C) 2020 github.com/meena-erian/reflection-api
+ * @see https://github.com/meena-erian/reflection-api
+ * @copyright (C) 2020 Menas Erian
  */
 
 var call = {
