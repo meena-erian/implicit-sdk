@@ -209,9 +209,8 @@ class ServerEndpoint
      * This function generates a JavaScript file that represents the client-side
      *  module interface of the api.
      * 
-     * @param string $module_path The /path/name.js of the output file to which the
-     *  JS module will be printed, relative to $_SERVER['DOCUMENT_ROOT']
-     *  Default value is "/api.js"
+     * @param string $module_path The path/name.js of the output file to which the
+     *  JS module will be printed.
      * @return mixed True on sccess, null if the file is already printed, 
      * and false on error
      */
@@ -220,7 +219,7 @@ class ServerEndpoint
         $this->_moduleJS = $module_path;
         $output = str_replace(
             "pathToEndpoint",
-            $this->_moduleJS,
+            explode('?', $_SERVER["REQUEST_URI"])[0],
             file_get_contents(__DIR__."/module-header.js")
         );
         foreach ($this->_functions as $ServerFunction) {
@@ -248,7 +247,7 @@ class ServerEndpoint
 
             $output .= "\nexport {" . $ServerFunction["name"] . "};\n\n";
         }
-        file_put_contents($_SERVER['DOCUMENT_ROOT'] . $module_path, $output);
+        file_put_contents($module_path, $output);
     }
 
     public function print_functions()
