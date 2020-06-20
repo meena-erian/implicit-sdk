@@ -16,6 +16,12 @@ class ServerEndpoint
     private $_functions = array();
 
     /**
+     * @var string $moduleJS /path/name.js of the JavaScript module
+     *  relative to the $_SERVER['DOCUMENT_ROOT']
+     */
+    private $moduleJS = "";
+
+    /**
      * @var array $PHP_Type_To_JSType used to convert PHP 
      * data type names to their alternative JavaScript types.
      */
@@ -203,14 +209,20 @@ class ServerEndpoint
      * This function generates a JavaScript file that represents the client-side
      *  module interface of the api.
      * 
-     * @param string $file The path/name of the output file to which the JS module 
-     * will be printed.
+     * @param string $module_path The /path/name.js of the output file to which the
+     *  JS module will be printed, relative to $_SERVER['DOCUMENT_ROOT']
+     *  Default value is "/api.js"
      * @return mixed True on sccess, null if the file is already printed, 
      * and false on error
      */
-    public function reflectJS($file = "api.js")
+    public function reflectJS($module_path = "/api.js")
     {
-        $output = file_get_contents(__DIR__."/module-header.js");
+        $this->_moduleJS = $module_path;
+        $output = str_replace(
+            "pathToEndpoint",
+            $this->_moduleJS,
+            file_get_contents(__DIR__."/module-header.js")
+        );
         foreach ($this->_functions as $ServerFunction) {
             $output .= self::JSDoc($ServerFunction["DocComment"]) . "\n";
 
@@ -236,7 +248,7 @@ class ServerEndpoint
 
             $output .= "\nexport {" . $ServerFunction["name"] . "};\n\n";
         }
-        file_put_contents($file, $output);
+        file_put_contents($_SERVER['DOCUMENT_ROOT'] . $module_path, $output);
     }
 
     public function print_functions()

@@ -13,7 +13,7 @@ var call = {
       let s = call.stack;
       call.stack = [];
       var xhttp = new XMLHttpRequest();
-      xhttp.open("POST", "/api/");
+      xhttp.open("POST", "pathToEndpoint");
       xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       xhttp.onload = function(e){
         call.resolve(s, JSON.parse(e.target.response));
