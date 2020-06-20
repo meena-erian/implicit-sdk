@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <h1>Checkbox texample use of Reflection API</h1>
+        <p>
+            Try checking or unchecking any checkbox and notice how 
+            its state is saved on the server side (in the form of files)
+        </p>
+        <h3 id = "checkboxlist">
+            <input type="checkbox" id="1" onchange="undateCheckbox(this)" disabled="true" />
+            <input type="checkbox" id="2" onchange="undateCheckbox(this)" disabled="true"/>
+            <input type="checkbox" id="3" onchange="undateCheckbox(this)" disabled="true"/>
+            <input type="checkbox" id="4" onchange="undateCheckbox(this)" disabled="true"/>
+            <input type="checkbox" id="5" onchange="undateCheckbox(this)" disabled="true"/>
+        </h3>
+        <script>
+            async function undateCheckbox(cbox){
+                cbox.disabled = true;
+                if(cbox.checked){
+                    await api.check(parseInt(cbox.id));
+                }
+                else{
+                    await api.uncheck(parseInt(cbox.id));
+                }
+                cbox.disabled = false;
+            }
+            async function loadCheckbox(cbox){
+                cbox.checked = await api.checked(parseInt(cbox.id));
+                cbox.disabled = false;
+            }
+            window.onload = function(){
+                import("/api-module.js").then(m => api = m).then(p => {
+                    let clist = document.querySelector("#checkboxlist").children;
+                    for(var i=0; i<clist.length; i++){
+                        loadCheckbox(clist[i]);
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
