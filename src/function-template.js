@@ -13,6 +13,6 @@ function functionName(argList){
         }
     );
     if(call.timeout !== -1) clearTimeout(call.timeout);
-    call.timeout = setTimeout(call.send, 250);
+    call.timeout = setTimeout(call.send, 700);
     return p;
 }
