@@ -19,7 +19,7 @@ var call = {
         call.resolve(s, JSON.parse(e.target.response));
       }
       xhttp.onerror = function(){
-        console.log("Error! Connection failed");
+        call.reject(s);
       }
       xhttp.send(JSON.stringify(s));
       console.log(JSON.stringify(s, null, 2));
@@ -36,4 +36,9 @@ var call = {
       "\n--------------\n","Response\n",
       JSON.stringify(serverResponse, null, 2));
   },
+  reject: function (callStack) {
+    callStack.forEach((c) => {
+      c.promise.reject("Connection failed");
+    });
+  }
 };
