@@ -31,7 +31,7 @@ var call = {
       });
       console.log(
       "Calles resolved:\n--------------\n",
-      "\Request:\n",
+      "Request:\n",
       JSON.stringify(callStack, null, 2),
       "\n--------------\n","Response\n",
       JSON.stringify(serverResponse, null, 2));
