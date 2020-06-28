@@ -313,50 +313,19 @@ class Reflection_API
                     )
                 )
             );
-
-            /*
-            $content .= 
-            "<details id='".
-            $ServerFunction['name'] .
-            "'><summary><a href='#" . $ServerFunction["name"] . "'>". 
-            $ServerFunction["name"] . 
-            "</a></summary><pre>" .
-            print_r($ServerFunction["params"], true) . "\n" .
-            print_r($ServerFunction["DocComment"], true) . "</pre></details>";
-            
-            
-            $argList = 
-            implode(", ",
-                array_map(
-                    function($ReflectionParameter)
-                    {return $ReflectionParameter->name;},
-                    $ServerFunction["params"]
-                )
-            );
-
-            
-            $output .= 
-            str_replace(
-                "argList",
-                $argList,
-                str_replace(
-                    "functionName", 
-                    $ServerFunction["name"],
-                    file_get_contents(__DIR__."/function-template.js")
-                )
-            );
-            
-            $output .= "\nexport {" . $ServerFunction["name"] . "};\n\n";
-            */
         }
         return 
         str_replace(
-            "[[Functions-List]]",
-            $content,
+            "[[Module-Link]]",
+            $this->_location . "?type=js",
             str_replace(
-                "[[Endpoint-Name]]",
-                ucfirst(get_called_class()),
-                file_get_contents(__DIR__."/doc-templete.html")
+                "[[Functions-List]]",
+                $content,
+                str_replace(
+                    "[[Endpoint-Name]]",
+                    ucfirst(get_called_class()),
+                    file_get_contents(__DIR__."/doc-templete.html")
+                )
             )
         );
     }
