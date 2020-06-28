@@ -93,6 +93,48 @@ class Reflection_API
     }
 
     /**
+     * A function that generates HTML description from
+     *  a documentation array of parsed PHPDoc comment.
+     * 
+     * @param array $docArray DocComment array as returned from 
+     * the parse_DocComment() function.
+     * @return string Generated HTML string.
+     */
+    private static function HTMLDoc($docArray)
+    {
+        $return = "<p class='indented'>" . str_replace("\n", "<br />", $docArray["summary"]) . "</p>";
+
+        $return .= "<h4>Parameters: </h4>";
+        if(count($docArray["params"])){
+            $return .= "<ul>";
+            foreach($docArray["params"] as $param){
+                $paramStr = "<li><b><i>" . 
+                strtolower($param["type"]) .
+                "</i> " . $param["name"] . "</b><p class='indented'>" .
+                $param["summary"] . "</p></li>" ; 
+                $return .= str_replace("\n", "<br />", $paramStr);
+            }
+            $return .= "</ul>";
+        }
+        else{
+            $return .= "<p>No parameters</p>";
+        }
+        $return .= "<h4>Return Value: </h4>";
+
+        if(isset($docArray["return"])){
+            $returnStr = "<ul><li><b><i>" .
+			strtolower($docArray["return"]["type"]) .
+            "</i></b><p>" . $docArray["return"]["summary"] . 
+            "</p></li></ul>";
+            $return .= str_replace("\n", "<br />", $returnStr);
+        }
+        else {
+            $return .= "<p>No Return value</p>";
+        }
+        return $return;
+    }
+
+    /**
      * A function that parses a PHPDocComment string into a structured array
      * 
      * @param string $comment The DocComment string.
@@ -238,6 +280,88 @@ class Reflection_API
     }
 
     /**
+     * This function generates an HTML documentation page for the API endpoint
+     * 
+     * @return string The generated HTML documentation
+     */
+    public function reflectHTML()
+    {
+        $content = "";
+        foreach ($this->_functions as $ServerFunction) {
+            //$output .= self::JSDoc($ServerFunction["DocComment"]) . "\n";
+            $name = $ServerFunction["name"];
+            $definition = "<b>$name</b>(";
+            foreach($ServerFunction["params"] as $key => $param){
+                if($key) $definition.= ", ";
+                $definition.= "<i>$param->name</i>";
+            }
+            $definition .= ")";
+
+            $description = self::HTMLDoc($ServerFunction["DocComment"]);
+
+            $content .= 
+            str_replace(
+                "[[Function-Description]]",
+                $description,
+                str_replace(
+                    "[[Function-Definition]]",
+                    $definition,
+                    str_replace(
+                        "[[Function-Name]]", 
+                        $ServerFunction["name"],
+                        file_get_contents(__DIR__."/function-template.html")
+                    )
+                )
+            );
+
+            /*
+            $content .= 
+            "<details id='".
+            $ServerFunction['name'] .
+            "'><summary><a href='#" . $ServerFunction["name"] . "'>". 
+            $ServerFunction["name"] . 
+            "</a></summary><pre>" .
+            print_r($ServerFunction["params"], true) . "\n" .
+            print_r($ServerFunction["DocComment"], true) . "</pre></details>";
+            
+            
+            $argList = 
+            implode(", ",
+                array_map(
+                    function($ReflectionParameter)
+                    {return $ReflectionParameter->name;},
+                    $ServerFunction["params"]
+                )
+            );
+
+            
+            $output .= 
+            str_replace(
+                "argList",
+                $argList,
+                str_replace(
+                    "functionName", 
+                    $ServerFunction["name"],
+                    file_get_contents(__DIR__."/function-template.js")
+                )
+            );
+            
+            $output .= "\nexport {" . $ServerFunction["name"] . "};\n\n";
+            */
+        }
+        return 
+        str_replace(
+            "[[Functions-List]]",
+            $content,
+            str_replace(
+                "[[Endpoint-Name]]",
+                ucfirst(get_called_class()),
+                file_get_contents(__DIR__."/doc-templete.html")
+            )
+        );
+    }
+
+    /**
      * Initialiezs the reflection processes
      */
     function __construct()
@@ -263,7 +387,7 @@ class Reflection_API
 			echo $this->reflectJS();
 		}
 		elseif(METHOD == "GET"){//&& (TYPE == "DOC" /* OR */)){
-			echo "DOC";
+			echo $this->reflectHTML();
 		}
 		exit();
     }
