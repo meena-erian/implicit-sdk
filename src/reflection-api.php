@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Reflection API is a A lite, high-performance and
  *  super easy-to-use and manage PHP & JavaScript 
@@ -15,11 +16,11 @@ class Reflection_API
      */
     private $_functions = array();
 
-	/**
-	 * @var string $_location The absolute link to the api.
-	 */
-	private $_location = "";
-	
+    /**
+     * @var string $_location The absolute link to the api.
+     */
+    private $_location = "";
+
     /**
      * @var array $JSType used to convert PHP 
      * data type names to their alternative JavaScript types.
@@ -31,24 +32,25 @@ class Reflection_API
         "double"        =>      "number",
         "float"         =>      "number",
         "array"         =>      "object",
-		"object"        =>      "object",
+        "object"        =>      "object",
         "bool"          =>      "boolean",
-		"mixed"			=>		""
+        "mixed"            =>        ""
     );
 
-	/**
-	 * Converts php type names to exuivelant JS type for
-	 *  the @param keyword
-	 *
-	 * @param string @php A php type
-	 * @return mixed the resulted JS type
-	 */
-	private static function PHP_Type_To_JSType($php){
-		$js = self::$JSType[$php];
-		if(!isset($js)) return false;
-		if(strlen($js)) return "{$js}";
-		return "";
-	}
+    /**
+     * Converts php type names to exuivelant JS type for
+     *  the @param keyword
+     *
+     * @param string @php A php type
+     * @return mixed the resulted JS type
+     */
+    private static function PHP_Type_To_JSType($php)
+    {
+        $js = self::$JSType[$php];
+        if (!isset($js)) return false;
+        if (strlen($js)) return "{$js}";
+        return "";
+    }
     /**
      * A function that generates JavaScript JSDoc comment from 
      *  a documentation array of parsed PHPDoc comment.
@@ -60,13 +62,13 @@ class Reflection_API
     private static function JSDoc($docArray)
     {
         $return = "/**\n";
-        
-        $commentBlock = function ($blockStr){
+
+        $commentBlock = function ($blockStr) {
             $commentLines = function ($line) {
                 return " * " . $line;
             };
             return implode(
-                "\n", 
+                "\n",
                 array_map(
                     $commentLines,
                     explode("\n", $blockStr)
@@ -74,18 +76,18 @@ class Reflection_API
             );
         };
         $return .= $commentBlock($docArray["summary"]) . "\n";
-        foreach($docArray["params"] as $param){
-            $paramStr = "@param " . 
+        foreach ($docArray["params"] as $param) {
+            $paramStr = "@param " .
                 self::PHP_Type_To_JSType(strtolower($param["type"])) .
-            " " . $param["name"] . " " . $param["summary"];
+                " " . $param["name"] . " " . $param["summary"];
             $return .= $commentBlock($paramStr) . "\n";
         }
-        if(isset($docArray["return"])){
+        if (isset($docArray["return"])) {
             $returnStr = "@return " .
                 self::PHP_Type_To_JSType(
-					strtolower($docArray["return"]["type"])
-				) .
-            " " . $docArray["return"]["summary"];
+                    strtolower($docArray["return"]["type"])
+                ) .
+                " " . $docArray["return"]["summary"];
             $return .= $commentBlock($returnStr) . "\n";
         }
         $return  .= " */";
@@ -105,30 +107,28 @@ class Reflection_API
         $return = "<p class='indented'>" . str_replace("\n", "<br />", $docArray["summary"]) . "</p>";
 
         $return .= "<h4>Parameters: </h4>";
-        if(count($docArray["params"])){
+        if (count($docArray["params"])) {
             $return .= "<ul>";
-            foreach($docArray["params"] as $param){
-                $paramStr = "<li><b><i>" . 
-                strtolower($param["type"]) .
-                "</i> " . $param["name"] . "</b><p class='indented'>" .
-                $param["summary"] . "</p></li>" ; 
+            foreach ($docArray["params"] as $param) {
+                $paramStr = "<li><b><i>" .
+                    strtolower($param["type"]) .
+                    "</i> " . $param["name"] . "</b><p class='indented'>" .
+                    $param["summary"] . "</p></li>";
                 $return .= str_replace("\n", "<br />", $paramStr);
             }
             $return .= "</ul>";
-        }
-        else{
+        } else {
             $return .= "<p>No parameters</p>";
         }
         $return .= "<h4>Return Value: </h4>";
 
-        if(isset($docArray["return"])){
+        if (isset($docArray["return"])) {
             $returnStr = "<ul><li><b><i>" .
-			strtolower($docArray["return"]["type"]) .
-            "</i></b><p>" . $docArray["return"]["summary"] . 
-            "</p></li></ul>";
+                strtolower($docArray["return"]["type"]) .
+                "</i></b><p>" . $docArray["return"]["summary"] .
+                "</p></li></ul>";
             $return .= str_replace("\n", "<br />", $returnStr);
-        }
-        else {
+        } else {
             $return .= "<p>No Return value</p>";
         }
         return $return;
@@ -221,16 +221,15 @@ class Reflection_API
     public function listen()
     {
         $data = file_get_contents('php://input');
-        if(strlen($data)){
+        if (strlen($data)) {
             $data = json_decode($data, false, 10);
-            if(is_array($data)){
+            if (is_array($data)) {
                 header("Content-Type: application/json");
                 $response = array();
-                foreach($data as $call){
-                    if(isset($call->name) && isset($this->_functions[$call->name])){
+                foreach ($data as $call) {
+                    if (isset($call->name) && isset($this->_functions[$call->name])) {
                         $response[] = call_user_method_array($call->name, $this, $call->params);
-                    }
-                    else $response[] = null;
+                    } else $response[] = null;
                 }
                 die(json_encode($response));
             }
@@ -248,31 +247,33 @@ class Reflection_API
         $output = str_replace(
             "pathToEndpoint",
             $this->_location . "?type=api",
-            file_get_contents(__DIR__."/module-header.js")
-		);
+            file_get_contents(__DIR__ . "/module-header.js")
+        );
 
         foreach ($this->_functions as $ServerFunction) {
             $output .= self::JSDoc($ServerFunction["DocComment"]) . "\n";
 
-            $argList = 
-            implode(", ",
-                array_map(
-                    function($ReflectionParameter)
-                    {return $ReflectionParameter->name;},
-                    $ServerFunction["params"]
-                )
-            );
+            $argList =
+                implode(
+                    ", ",
+                    array_map(
+                        function ($ReflectionParameter) {
+                            return $ReflectionParameter->name;
+                        },
+                        $ServerFunction["params"]
+                    )
+                );
 
-            $output .= 
-            str_replace(
-                "argList",
-                $argList,
+            $output .=
                 str_replace(
-                    "functionName", 
-                    $ServerFunction["name"],
-                    file_get_contents(__DIR__."/function-template.js")
-                )
-            );
+                    "argList",
+                    $argList,
+                    str_replace(
+                        "functionName",
+                        $ServerFunction["name"],
+                        file_get_contents(__DIR__ . "/function-template.js")
+                    )
+                );
 
             $output .= "\nexport {" . $ServerFunction["name"] . "};\n\n";
         }
@@ -291,43 +292,43 @@ class Reflection_API
             //$output .= self::JSDoc($ServerFunction["DocComment"]) . "\n";
             $name = $ServerFunction["name"];
             $definition = "<b>$name</b>(";
-            foreach($ServerFunction["params"] as $key => $param){
-                if($key) $definition.= ", ";
-                $definition.= "<i>$param->name</i>";
+            foreach ($ServerFunction["params"] as $key => $param) {
+                if ($key) $definition .= ", ";
+                $definition .= "<i>$param->name</i>";
             }
             $definition .= ")";
 
             $description = self::HTMLDoc($ServerFunction["DocComment"]);
 
-            $content .= 
-            str_replace(
-                "[[Function-Description]]",
-                $description,
+            $content .=
                 str_replace(
-                    "[[Function-Definition]]",
-                    $definition,
+                    "[[Function-Description]]",
+                    $description,
                     str_replace(
-                        "[[Function-Name]]", 
-                        $ServerFunction["name"],
-                        file_get_contents(__DIR__."/function-template.html")
+                        "[[Function-Definition]]",
+                        $definition,
+                        str_replace(
+                            "[[Function-Name]]",
+                            $ServerFunction["name"],
+                            file_get_contents(__DIR__ . "/function-template.html")
+                        )
+                    )
+                );
+        }
+        return
+            str_replace(
+                "[[Module-Link]]",
+                $this->_location . "?type=js",
+                str_replace(
+                    "[[Functions-List]]",
+                    $content,
+                    str_replace(
+                        "[[Endpoint-Name]]",
+                        ucfirst(get_called_class()),
+                        file_get_contents(__DIR__ . "/doc-templete.html")
                     )
                 )
             );
-        }
-        return 
-        str_replace(
-            "[[Module-Link]]",
-            $this->_location . "?type=js",
-            str_replace(
-                "[[Functions-List]]",
-                $content,
-                str_replace(
-                    "[[Endpoint-Name]]",
-                    ucfirst(get_called_class()),
-                    file_get_contents(__DIR__."/doc-templete.html")
-                )
-            )
-        );
     }
 
     /**
@@ -335,29 +336,26 @@ class Reflection_API
      */
     function __construct()
     {
-		(
-		$this->_location = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER["HTTP_HOST"] . explode("?", $_SERVER["REQUEST_URI"])[0]);
+        ($this->_location = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER["HTTP_HOST"] . explode("?", $_SERVER["REQUEST_URI"])[0]);
         $child_methods = array_diff(
             get_class_methods(get_called_class()),
             get_class_methods(__CLASS__)
         );
-        foreach($child_methods as $m){
+        foreach ($child_methods as $m) {
             $this->_functions[$m] = self::analize_function($m);
         }
-		
+
         define("METHOD", $_SERVER['REQUEST_METHOD']);
-		define("TYPE", strtoupper($_GET["type"]));
-		
-		if(TYPE == "API" || METHOD == "POST"){
-			$this->listen();
-		}
-		elseif(TYPE == "JS" && METHOD == "GET"){
-			header("Content-Type: text/javascript");
-			echo $this->reflectJS();
-		}
-		elseif(METHOD == "GET"){//&& (TYPE == "DOC" /* OR */)){
-			echo $this->reflectHTML();
-		}
-		exit();
+        define("TYPE", strtoupper($_GET["type"]));
+
+        if (TYPE == "API" || METHOD == "POST") {
+            $this->listen();
+        } elseif (TYPE == "JS" && METHOD == "GET") {
+            header("Content-Type: text/javascript");
+            echo $this->reflectJS();
+        } elseif (METHOD == "GET") { //&& (TYPE == "DOC" /* OR */)){
+            echo $this->reflectHTML();
+        }
+        exit();
     }
 }
