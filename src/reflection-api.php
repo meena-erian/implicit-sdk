@@ -51,6 +51,7 @@ class Reflection_API
         if (strlen($js)) return "{$js}";
         return "";
     }
+    
     /**
      * A function that generates JavaScript JSDoc comment from 
      *  a documentation array of parsed PHPDoc comment.
