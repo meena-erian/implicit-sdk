@@ -5,7 +5,8 @@
  * @copyright (C) 2020 Menas Erian
  */
 
-var call = {
+
+ var call = {
   timeout: -1,
   stack: [],
   send: function () {
