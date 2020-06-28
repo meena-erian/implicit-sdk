@@ -8,46 +8,47 @@
  * @copyright (C) 2020 Menas Erian
  */
 
-class ServerEndpoint
+class Reflection_API
 {
     /**
      * @var array $_functions List of server functions.
      */
     private $_functions = array();
 
+	/**
+	 * @var string $_location The absolute link to the api.
+	 */
+	private $_location = "";
+	
     /**
-     * @var string $moduleJS /path/name.js of the JavaScript module
-     *  relative to the $_SERVER['DOCUMENT_ROOT']
-     */
-    private $moduleJS = "";
-
-    /**
-     * @var array $PHP_Type_To_JSType used to convert PHP 
+     * @var array $JSType used to convert PHP 
      * data type names to their alternative JavaScript types.
      */
-    private static $PHP_Type_To_JSType = array(
+    private static $JSType = array(
         "string"        =>      "string",
         "int"           =>      "number",
         "integer"       =>      "number",
         "double"        =>      "number",
         "float"         =>      "number",
         "array"         =>      "object",
-        "object"        =>      "object",
-        "bool"          =>      "boolean"
+		"object"        =>      "object",
+        "bool"          =>      "boolean",
+		"mixed"			=>		""
     );
 
-    /**
-     * Validate a function object. Used before adding it to a ServerEndpoint.
-     * 
-     * @param 
-     * @param string $f The name of the function to be validated.
-     * @return bool True on success, false on failure.
-     */
-    private static function validate_function($f)
-    {
-        return function_exists($f);
-    }
-
+	/**
+	 * Converts php type names to exuivelant JS type for
+	 *  the @param keyword
+	 *
+	 * @param string @php A php type
+	 * @return mixed the resulted JS type
+	 */
+	private static function PHP_Type_To_JSType($php){
+		$js = self::$JSType[$php];
+		if(!isset($js)) return false;
+		if(strlen($js)) return "{$js}";
+		return "";
+	}
     /**
      * A function that generates JavaScript JSDoc comment from 
      *  a documentation array of parsed PHPDoc comment.
@@ -74,15 +75,17 @@ class ServerEndpoint
         };
         $return .= $commentBlock($docArray["summary"]) . "\n";
         foreach($docArray["params"] as $param){
-            $paramStr = "@param {" . 
-                self::$PHP_Type_To_JSType[strtolower($param["type"])] .
-            "} " . $param["name"] . " " . $param["summary"];
+            $paramStr = "@param " . 
+                self::PHP_Type_To_JSType(strtolower($param["type"])) .
+            " " . $param["name"] . " " . $param["summary"];
             $return .= $commentBlock($paramStr) . "\n";
         }
         if(isset($docArray["return"])){
-            $returnStr = "@return {" .
-                self::$PHP_Type_To_JSType[strtolower($docArray["return"]["type"])] .
-            "} " . $docArray["return"]["summary"];
+            $returnStr = "@return " .
+                self::PHP_Type_To_JSType(
+					strtolower($docArray["return"]["type"])
+				) .
+            " " . $docArray["return"]["summary"];
             $return .= $commentBlock($returnStr) . "\n";
         }
         $return  .= " */";
@@ -153,32 +156,20 @@ class ServerEndpoint
     }
 
     /**
-     * This funciton finds a user function and its PHPDoc comment 
+     * This funciton finds a child method and its PHPDoc comment 
      * and analizes them to generate a function info object.
      * 
-     * @param string $f Function name.
+     * @param string $m Method name.
      * @return mixed Function info array of false on failure. 
      */
-    private static function analize_function($f)
+    private static function analize_function($m)
     {
-        $rf = new ReflectionFunction($f);
+        $rm = new ReflectionMethod(get_called_class(), $m);
         return array(
-            "name" => $rf->getName(),
-            "DocComment" => self::parse_DocComment($rf->getDocComment()),
-            "params" => $rf->getParameters()
+            "name" => $rm->getName(),
+            "DocComment" => self::parse_DocComment($rm->getDocComment()),
+            "params" => $rm->getParameters()
         );
-    }
-
-    /**
-     * Define a new server function.
-     * 
-     * @param string $f Name of a user function to be defined in the ServerEndpoint.
-     * @return bool True on success, false on failure.
-     */
-    public function add_function($f)
-    {
-        if (!self::validate_function($f)) return false;
-        $this->_functions[$f] = self::analize_function($f);
     }
 
     /**
@@ -195,10 +186,9 @@ class ServerEndpoint
                 $response = array();
                 foreach($data as $call){
                     if(isset($call->name) && isset($this->_functions[$call->name])){
-                        $response[] = 
-                            call_user_func_array($call->name,$call->params);
+                        $response[] = call_user_method_array($call->name, $this, $call->params);
                     }
-                    else $response[] = "Fuck";
+                    else $response[] = null;
                 }
                 die(json_encode($response));
             }
@@ -209,19 +199,16 @@ class ServerEndpoint
      * This function generates a JavaScript file that represents the client-side
      *  module interface of the api.
      * 
-     * @param string $module_path The path/name.js of the output file to which the
-     *  JS module will be printed.
-     * @return mixed True on sccess, null if the file is already printed, 
-     * and false on error
+     * @return string The generated JavaScript module.
      */
-    public function reflectJS($module_path = "/api.js")
+    public function reflectJS()
     {
-        $this->_moduleJS = $module_path;
         $output = str_replace(
             "pathToEndpoint",
-            explode('?', $_SERVER["REQUEST_URI"])[0],
+            $this->_location . "?type=api",
             file_get_contents(__DIR__."/module-header.js")
-        );
+		);
+
         foreach ($this->_functions as $ServerFunction) {
             $output .= self::JSDoc($ServerFunction["DocComment"]) . "\n";
 
@@ -247,11 +234,37 @@ class ServerEndpoint
 
             $output .= "\nexport {" . $ServerFunction["name"] . "};\n\n";
         }
-        file_put_contents($module_path, $output);
+        return $output;
     }
 
-    public function print_functions()
+    /**
+     * Initialiezs the reflection processes
+     */
+    function __construct()
     {
-        var_dump($this->_functions);
+		(
+		$this->_location = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER["HTTP_HOST"] . explode("?", $_SERVER["REQUEST_URI"])[0]);
+        $child_methods = array_diff(
+            get_class_methods(get_called_class()),
+            get_class_methods(__CLASS__)
+        );
+        foreach($child_methods as $m){
+            $this->_functions[$m] = self::analize_function($m);
+        }
+		
+        define("METHOD", $_SERVER['REQUEST_METHOD']);
+		define("TYPE", strtoupper($_GET["type"]));
+		
+		if(TYPE == "API" || METHOD == "POST"){
+			$this->listen();
+		}
+		elseif(TYPE == "JS" && METHOD == "GET"){
+			header("Content-Type: text/javascript");
+			echo $this->reflectJS();
+		}
+		elseif(METHOD == "GET"){//&& (TYPE == "DOC" /* OR */)){
+			echo "DOC";
+		}
+		exit();
     }
 }

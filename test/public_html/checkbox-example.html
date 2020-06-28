@@ -31,7 +31,7 @@
                 cbox.disabled = false;
             }
             window.onload = function(){
-                import("/api-module.js").then(m => api = m).then(p => {
+                import("./endpoint.php?type=js").then(m => api = m).then(p => {
                     let clist = document.querySelector("#checkboxlist").children;
                     for(var i=0; i<clist.length; i++){
                         loadCheckbox(clist[i]);
