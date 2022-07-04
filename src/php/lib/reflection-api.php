@@ -34,7 +34,7 @@ class Reflection_API
         "array"         =>      "object",
         "object"        =>      "object",
         "bool"          =>      "boolean",
-        "mixed"            =>        ""
+        "mixed"         =>       ""
     );
 
     /**
