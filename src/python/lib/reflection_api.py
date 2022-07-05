@@ -1,6 +1,7 @@
 from docstring_parser import parse
 from inspect import getfullargspec
 from flask import request, make_response
+from django.http import JsonResponse, HttpResponse
 import os
 import json
 
@@ -229,3 +230,23 @@ class ReflectionAPI:
             return response
         else:
             return self.reflectHTML()
+
+    def django_view(self, request):
+        view_type = request.GET.get('type')
+        if not view_type:
+            view_type = 'html'
+        view_type = view_type.upper()
+        if view_type == 'API' and request.method == 'POST':
+            data = json.loads(request.body.decode('utf-8'))
+            response = []
+            for call in data:
+                if "name" in call and call['name'] in self._functions:
+                    response.append(
+                        self._functions[call['name']]['ref'](*call['params']))
+                else:
+                    response.append(None)
+            return JsonResponse(response)
+        elif view_type == 'JS':
+            return HttpResponse(self.reflectJS(), content_type="text/javascript")
+        else:
+            return HttpResponse(self.reflectHTML())
