@@ -1,7 +1,7 @@
 from docstring_parser import parse
 from inspect import getfullargspec
 from flask import request, make_response
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
 import os
 import json
 
@@ -245,7 +245,10 @@ class ReflectionAPI:
                         self._functions[call['name']]['ref'](*call['params']))
                 else:
                     response.append(None)
-            return JsonResponse(response)
+            return HttpResponse(
+                json.dumps(response),
+                content_type='application/json; charset=utf8'
+            )
         elif view_type == 'JS':
             return HttpResponse(self.reflectJS(), content_type="text/javascript")
         else:

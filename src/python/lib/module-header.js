@@ -6,6 +6,25 @@
  */
 
 
+ function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+
+
  var call = {
   timeout: -1,
   stack: [],
@@ -16,6 +35,7 @@
       var xhttp = new XMLHttpRequest();
       xhttp.open("POST", "pathToEndpoint");
       xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      xhttp.setRequestHeader("X-CSRFToken", csrftoken);
       xhttp.onload = function (e) {
         call.resolve(s, JSON.parse(e.target.response));
       };
