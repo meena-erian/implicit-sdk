@@ -233,6 +233,7 @@ class ReflectionAPI:
 
     def django_view(self, request):
         view_type = request.GET.get('type')
+        self.request = request
         if not view_type:
             view_type = 'html'
         view_type = view_type.upper()

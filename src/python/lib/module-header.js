@@ -21,9 +21,10 @@
   }
   return cookieValue;
 }
-const csrftoken = getCookie('csrftoken');
 
-
+function getCsrfToken(){
+  return getCookie('csrftoken');
+}
 
  var call = {
   timeout: -1,
@@ -35,7 +36,7 @@ const csrftoken = getCookie('csrftoken');
       var xhttp = new XMLHttpRequest();
       xhttp.open("POST", "pathToEndpoint");
       xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-      xhttp.setRequestHeader("X-CSRFToken", csrftoken);
+      xhttp.setRequestHeader("X-CSRFToken", getCsrfToken());
       xhttp.onload = function (e) {
         call.resolve(s, JSON.parse(e.target.response));
       };

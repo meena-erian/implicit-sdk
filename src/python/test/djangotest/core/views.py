@@ -12,6 +12,7 @@ sys.path.append(
     'lib')
 )
 from reflection_api import ReflectionAPI
+from django.http import request
 
 
 class Endpoint(ReflectionAPI):
@@ -39,6 +40,19 @@ class Endpoint(ReflectionAPI):
             return None
         f = open(key)
         return f.read()
+    
+    def get_current_user(self):
+        """A function that resturns the username of the currently authenticated
+        user or None if it's an AnonymouseUser.
+
+        Returns:
+            None|str: The username of the currently authenticated
+        user or None if it's an AnonymouseUser.
+        """
+        try:
+            return self.request.user.username
+        except Exception:
+            return None
 
 
 xpoint = Endpoint('/')
