@@ -11,11 +11,11 @@ sys.path.append(
         ),
     'lib')
 )
-from reflection_api import ReflectionAPI
+from implicit_endpoint import ImplicitEndpoint
 from django.http import request
 
 
-class Endpoint(ReflectionAPI):
+class Endpoint(ImplicitEndpoint):
     def save_key_val(self, key, val):
         """A function to write a file with the name 'key' and the content 'val'
 

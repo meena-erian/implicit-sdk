@@ -1,15 +1,6 @@
 <?php
 
-/**
- * Reflection API is a A lite, high-performance and
- *  super easy-to-use and manage PHP & JavaScript 
- *  Client-Server API
- * @see https://github.com/meena-erian/reflection-api
- * @author Menas Erian
- * @copyright (C) 2020 Menas Erian
- */
-
-class Reflection_API
+class ImplicitEndpoint
 {
     /**
      * @var array $_functions List of server functions.

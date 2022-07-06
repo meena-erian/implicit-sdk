@@ -1,8 +1,8 @@
-import ReflectionAPI from "../lib/reflection-api.mjs";
+import ImplicitEndpoint from "../lib/implicit_endpoint.mjs";
 import fs from 'fs'
 
 
-class Endpoint extends ReflectionAPI {
+class Endpoint extends ImplicitEndpoint {
     /**
      * Check a Checkbox
      * @param int id The id of the checkbox.

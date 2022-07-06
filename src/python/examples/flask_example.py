@@ -3,13 +3,13 @@ import sys
 import os
 sys.path.append(
     os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib'))
-from reflection_api import ReflectionAPI
+from implicit_endpoint import ImplicitEndpoint
 
 
 app = Flask(__name__)
 
 
-class Endpoint(ReflectionAPI):
+class Endpoint(ImplicitEndpoint):
     def save_key_val(self, key, val):
         """A function to write a file with the name 'key' and the content 'val'
 

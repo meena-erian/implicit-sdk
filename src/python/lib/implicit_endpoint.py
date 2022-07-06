@@ -6,7 +6,7 @@ import os
 import json
 
 
-class ReflectionAPI:
+class ImplicitEndpoint:
     JSType = {
         "string":      "string",
         "int":      "number",
@@ -22,8 +22,8 @@ class ReflectionAPI:
     def __init__(self, url):
         base_attrs = {}
         self._location = url
-        for attr in dir(ReflectionAPI):
-            base_attrs[attr] = type(getattr(ReflectionAPI, attr))
+        for attr in dir(ImplicitEndpoint):
+            base_attrs[attr] = type(getattr(ImplicitEndpoint, attr))
         obj_attrs = dir(self)
         self._functions = {}
         for attr in obj_attrs:

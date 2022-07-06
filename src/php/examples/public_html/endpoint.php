@@ -1,9 +1,9 @@
 <?php
 
-require_once("../../src/reflection-api.php");
+require_once("../../src/implicit_endpoint.php");
 
 
-class endpoint extends Reflection_API
+class endpoint extends ImplicitEndpoint
 {
     /**
      * Check a Checkbox

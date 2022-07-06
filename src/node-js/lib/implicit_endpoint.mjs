@@ -1,4 +1,4 @@
-class ReflectionAPI {
+class ImplicitEndpoint {
     _functions = []
     _location = ""
 

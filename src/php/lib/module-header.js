@@ -1,8 +1,8 @@
 /**
- * @file Reflection API Auto generated JS module.
- * @see https://github.com/meena-erian/reflection-api
- * @author Menas Erian
- * @copyright (C) 2020 Menas Erian
+ * @file implicit SDK Auto generated JS module.
+ * @see https://github.com/meena-erian/implicit-sdk
+ * @author Menas (Meena) Erian
+ * @copyright (C) 2022 Menas (Meena) Erian
  */
 
 
