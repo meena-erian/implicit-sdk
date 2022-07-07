@@ -31,7 +31,6 @@ class ImplicitEndpoint:
             if type(obj).__name__ == 'method' and attr not in base_attrs:
                 self._functions[attr] = self.analize_function(obj)
                 self._functions[attr]['ref'] = obj
-        self._location = ""
 
     @classmethod
     def __Python_Type_To_JSType(cls, pythonType):

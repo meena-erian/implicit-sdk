@@ -42,4 +42,4 @@ class Endpoint(ImplicitEndpoint):
             return None
 
 
-xpoint = Endpoint('/')
+xpoint = Endpoint('http://127.0.0.1:8000/core/')
