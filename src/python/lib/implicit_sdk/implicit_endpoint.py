@@ -3,6 +3,8 @@ from inspect import getfullargspec
 from flask import request, make_response
 from django.http import HttpResponse
 from typing import Optional, TypedDict, Callable
+from typing import Optional, TypedDict
+from django.views.decorators.csrf import csrf_exempt
 import os
 import json
 
@@ -286,6 +288,7 @@ class ImplicitEndpoint:
         else:
             return self.reflectHTML()
 
+    @csrf_exempt
     def django_view(self, request):
         view_type = request.GET.get('type')
         self.request = request
