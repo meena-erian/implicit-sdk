@@ -16,7 +16,7 @@ class FunctionIdentifier(TypedDict):
 
 class FunctionDocumentation(TypedDict):
     summary: Optional[str]
-    params: Optional[list[FunctionIdentifier]]
+    params: list[FunctionIdentifier]
     returns: Optional[FunctionIdentifier]
 
 
@@ -60,7 +60,9 @@ class ImplicitEndpoint:
                 self._functions[attr]['ref'] = obj
 
     @classmethod
-    def __Python_Type_To_JSType(cls, pythonType: str) -> str:
+    def __Python_Type_To_JSType(cls, pythonType: str | None) -> str:
+        if pythonType is None:
+            return ''
         pythonType = pythonType.lower()
         if '|' in pythonType:
             type_list = pythonType.split('|')
@@ -75,6 +77,18 @@ class ImplicitEndpoint:
 
     @classmethod
     def __JSDoc(cls, func_doc: FunctionDocumentation) -> str:
+        """This function takes a FunctionDocumentation Dict object
+        and compiles it into a JavaScript JSDoc documentation block
+        string describing the function.
+
+        Args:
+            func_doc (FunctionDocumentation): Function details to
+            be compiled to JavaScript JSDoc comment
+
+        Returns:
+            str: A string representing a JSDoc for the provided details
+            or an empty string otherwise.
+        """
         ret = "/**\n"
 
         def commentBlock(blockStr):
@@ -84,47 +98,64 @@ class ImplicitEndpoint:
                     blockStr.split("\n")
                 )
             )
-        ret += f"{commentBlock(func_doc['summary'])}\n"
-        for param in func_doc["params"]:
-            paramStr = "@param " + \
-                cls.__Python_Type_To_JSType(param["type_name"]) +\
-                " " + param["name"] + " " + param["summary"]
-            ret += commentBlock(paramStr) + "\n"
-        if "returns" in func_doc \
-                and type(func_doc['returns']).__name__ == 'dict':
-            returnStr = "@return " + \
-                cls.__Python_Type_To_JSType(
-                    func_doc["returns"]["type_name"]
-                ) + \
-                " " + func_doc["returns"]["summary"]
+        ret += f"{commentBlock(func_doc.get('summary'))}\n"
+        params = func_doc.get("params")
+        if params:
+            for param in params:
+                JSType = cls.__Python_Type_To_JSType(param.get("type_name"))
+                paramStr = f"@param {{{JSType}}} {param.get('name')} {param.get('summary')}"
+                ret += commentBlock(paramStr) + "\n"
+        if "returns" in func_doc:
+            returns = func_doc["returns"]
+            ret_type = cls.__Python_Type_To_JSType(returns["type_name"])
+            returnStr = "@return"
+            if ret_type:
+                returnStr += f" {{{ret_type}}}"
+            if returns.get("name"):
+                returnStr += f" {returns['name']}"
+            if returns.get("summary"):
+                returnStr += f" {returns['summary']}"
             ret += commentBlock(returnStr) + "\n"
         ret += " */"
         return ret
 
     @classmethod
     def __HTMLDoc(cls, func_doc: FunctionDocumentation) -> str:
-        ret = "<p class='indented'>" + \
-            func_doc["summary"].replace("\n", "<br />") + "</p>"
+        """This function takes a FunctionDocumentation Dict object
+        and compiles it into an html documentation describing the function 
+
+        Args:
+            func_doc (FunctionDocumentation): Function details to
+            be compiled to JavaScript JSDoc comment
+
+        Returns:
+            str: A string representing HTML documentation for the provided
+            details
+        """
+        ret = ""
+        if func_doc.get("summary"): 
+            ret = "<p class='indented'>" + \
+                func_doc["summary"].replace("\n", "<br />") + "</p>"
         ret += "<h4>Parameters: </h4>"
         if len(func_doc["params"]):
             ret += "<ul>"
             for param in func_doc["params"]:
-                paramStr = "<li><b><i>" + \
-                    param["type_name"] + \
-                    "</i> " + param["name"] + "</b><p class='indented'>" + \
-                    param["summary"] + "</p></li>"
+                type_name = param.get("type_name") if param.get("type_name") else ''
+                name = f" {param.get('name')}" if param.get('name') else ''
+                arg_desc = f"<p class='indented'>{param.get('summary')} + </p>" \
+                    if param.get('summary') else ''
+                paramStr = f"<li><b><i>{type_name}</i>{name}</b>{arg_desc}</li>"
                 ret += paramStr.replace("\n", "<br />")
             ret += "</ul>"
         else:
             ret += "<p>No parameters</p>"
         ret += "<h4>Return Value: </h4>"
 
-        if "returns" in func_doc \
-                and type(func_doc["returns"]).__name__ == 'dict':
+        if "returns" in func_doc:
             retStr = "<ul><li>"
             if "type" in func_doc["return"]:
                 retStr += "<b><i>" + \
-                    func_doc["return"]["type"].lower() + \
+                    func_doc["return"]["type"] + \
                     "</i></b>"
             if "summary" in func_doc["return"]:
                 "<p>" + \
@@ -139,10 +170,17 @@ class ImplicitEndpoint:
     @classmethod
     def __parse_DocComment(cls, comment: str) -> FunctionDocumentation:
         doc = parse(comment)
-        summary = doc.short_description
-        if hasattr(doc, 'long_description') and doc.long_description is not None:
+        ret = {}
+        summary = None
+        if doc.short_description:
+            summary = doc.short_description
+        if doc.long_description:
+            if not summary:
+                summary = ''
             summary += "\n\n" + doc.long_description
-        params = list(map(
+        if summary:
+            ret["summary"] = summary
+        ret["params"] = list(map(
             lambda param: {
                 "type_name": param.type_name,
                 "name": param.arg_name,
@@ -150,18 +188,13 @@ class ImplicitEndpoint:
             },
             doc.params
         ))
-        returns = None
         if doc.returns:
-            returns = {
+            ret["returns"] = {
                 "type_name": doc.returns.type_name,
                 "name": doc.returns.return_name,
                 "summary": doc.returns.description
             }
-        return {
-            "summary": summary,
-            "params": params,
-            "returns": returns
-        }
+        return ret
 
     @classmethod
     def __analize_function(cls, func: function) -> FunctionStructure:
