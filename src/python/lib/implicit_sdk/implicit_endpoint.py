@@ -2,7 +2,7 @@ from docstring_parser import parse
 from inspect import getfullargspec
 from flask import request, make_response
 from django.http import HttpResponse
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Callable
 import os
 import json
 
@@ -30,20 +30,20 @@ class EndpointFunction(TypedDict):
     name: str
     params: list[str]
     DocComment: Optional[FunctionDocumentation]
-    ref: function
+    ref: Callable
 
 
 class ImplicitEndpoint:
     JSType = {
-        "string":      "string",
-        "int":      "number",
-        "integer":      "number",
-        "double":      "number",
-        "float":      "number",
-        "array":      "object",
-        "object":      "object",
-        "bool":      "boolean",
-        "mixed":       "any"
+        "str": "string",
+        "int": "number",
+        "float": "number",
+        "complex": "number",
+        "tuple": "object",
+        "list": "object",
+        "dict": "object",
+        "bool": "boolean",
+        "None": "null"
     }
 
     def __init__(self, url: str):
@@ -63,17 +63,7 @@ class ImplicitEndpoint:
     def __Python_Type_To_JSType(cls, pythonType: str | None) -> str:
         if pythonType is None:
             return ''
-        pythonType = pythonType.lower()
-        if '|' in pythonType:
-            type_list = pythonType.split('|')
-        else:
-            type_list = [pythonType]
-        for i in range(type_list):
-            if not type_list[i] in cls.JSType:
-                type_list[i] = "UnknownType"
-            else:
-                type_list[i] = f"{{{cls.JSType[type_list[i]]}}}"
-        return ' | '.join(type_list)
+        return cls.__use_template(pythonType, cls.JSType)
 
     @classmethod
     def __JSDoc(cls, func_doc: FunctionDocumentation) -> str:
@@ -133,16 +123,17 @@ class ImplicitEndpoint:
             details
         """
         ret = ""
-        if func_doc.get("summary"): 
+        if func_doc.get("summary"):
             ret = "<p class='indented'>" + \
                 func_doc["summary"].replace("\n", "<br />") + "</p>"
         ret += "<h4>Parameters: </h4>"
         if len(func_doc["params"]):
             ret += "<ul>"
             for param in func_doc["params"]:
-                type_name = param.get("type_name") if param.get("type_name") else ''
+                type_name = param.get("type_name") if param.get(
+                    "type_name") else ''
                 name = f" {param.get('name')}" if param.get('name') else ''
-                arg_desc = f"<p class='indented'>{param.get('summary')} + </p>" \
+                arg_desc = f"<p class='indented'>{param.get('summary')} </p>" \
                     if param.get('summary') else ''
                 paramStr = f"<li><b><i>{type_name}</i>{name}</b>{arg_desc}</li>"
                 ret += paramStr.replace("\n", "<br />")
@@ -153,13 +144,13 @@ class ImplicitEndpoint:
 
         if "returns" in func_doc:
             retStr = "<ul><li>"
-            if "type" in func_doc["return"]:
+            if "type_name" in func_doc["returns"]:
                 retStr += "<b><i>" + \
-                    func_doc["return"]["type"] + \
+                    func_doc["returns"]["type_name"] + \
                     "</i></b>"
-            if "summary" in func_doc["return"]:
-                "<p>" + \
-                    func_doc["return"]["summary"] + \
+            if "summary" in func_doc["returns"]:
+                retStr += "<p>" + \
+                    func_doc["returns"]["summary"] + \
                     "</p>"
             retStr += "</li></ul>"
             ret += retStr.replace("\n", "<br />")
@@ -197,7 +188,7 @@ class ImplicitEndpoint:
         return ret
 
     @classmethod
-    def __analize_function(cls, func: function) -> FunctionStructure:
+    def __analize_function(cls, func: Callable) -> FunctionStructure:
         doc_comment: str = func.__doc__
         name: str = func.__name__
         params: list[str] = getfullargspec(func).args
