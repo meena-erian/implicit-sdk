@@ -90,13 +90,15 @@ class ImplicitEndpoint:
                     blockStr.split("\n")
                 )
             )
-        ret += f"{commentBlock(func_doc.get('summary'))}\n"
-        params = func_doc.get("params")
-        if params:
-            for param in params:
-                JSType = cls.__Python_Type_To_JSType(param.get("type_name"))
-                paramStr = f"@param {{{JSType}}} {param.get('name')} {param.get('summary')}"
-                ret += commentBlock(paramStr) + "\n"
+        if 'summary' in func_doc:
+            ret += f"{commentBlock(func_doc.get('summary'))}\n"
+        if "params" in func_doc:
+            params = func_doc.get("params")
+            if params:
+                for param in params:
+                    JSType = cls.__Python_Type_To_JSType(param.get("type_name"))
+                    paramStr = f"@param {{{JSType}}} {param.get('name')} {param.get('summary')}"
+                    ret += commentBlock(paramStr) + "\n"
         if "returns" in func_doc:
             returns = func_doc["returns"]
             ret_type = cls.__Python_Type_To_JSType(returns["type_name"])

@@ -1,5 +1,5 @@
 
-function functionName(argList) {
+async function functionName(argList) {
   let params = Array.prototype.slice.call(arguments);
   var p = new Promise(function (resolve, reject) {
     call.stack.push({
