@@ -49,7 +49,12 @@ function getCsrfToken(){
   },
   resolve: function (callStack, serverResponse) {
     serverResponse.forEach((element, i) => {
-      callStack[i].promise.resolve(element);
+      if("returned" in element){
+        callStack[i].promise.resolve(element.returned);
+      }
+      else{
+        callStack[i].promise.reject(element.exception)
+      }
     });
   },
   reject: function (callStack) {

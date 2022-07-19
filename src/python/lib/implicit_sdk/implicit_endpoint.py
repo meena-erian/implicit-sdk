@@ -276,8 +276,12 @@ class ImplicitEndpoint:
             response = []
             for call in data:
                 if "name" in call and call['name'] in self._functions:
-                    response.append(
-                        self._functions[call['name']]['ref'](*call['params']))
+                    try:
+                        ret = self._functions[call['name']]['ref'](*call['params'])
+                    except Exception as e:
+                        response.append({"exception": e})
+                    else:
+                        response.append({"returned": ret})
                 else:
                     response.append(None)
             response_obj = make_response(json.dumps(response))
@@ -302,8 +306,12 @@ class ImplicitEndpoint:
             response = []
             for call in data:
                 if "name" in call and call['name'] in self._functions:
-                    response.append(
-                        self._functions[call['name']]['ref'](*call['params']))
+                    try:
+                        ret = self._functions[call['name']]['ref'](*call['params'])
+                    except Exception as e:
+                        response.append({"exception": e})
+                    else:
+                        response.append({"returned": ret})
                 else:
                     response.append(None)
             return HttpResponse(

@@ -220,7 +220,16 @@ class ImplicitEndpoint
                 $response = array();
                 foreach ($data as $call) {
                     if (isset($call->name) && isset($this->_functions[$call->name])) {
-                        $response[] = call_user_method_array($call->name, $this, $call->params);
+                        try{
+                            $ret = call_user_method_array($call->name, $this, $call->params);
+                        }
+                        catch (Exception $e){
+                            $response[] = array("exception" => $e)
+                        }
+                        finally {
+                            $response[] = array("returned" => $ret)
+                        }
+
                     } else $response[] = null;
                 }
                 die(json_encode($response));
