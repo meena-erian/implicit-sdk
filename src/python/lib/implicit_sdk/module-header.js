@@ -42,12 +42,13 @@ function getCsrfToken(){
         "credentials": "include",
         "body": JSON.stringify(s)
       }).then(
-        async r => call.resolve(s, await r.json()),
+        async r => call.resolve(s, r),
         async r => call.reject(s, r)
       )
     }
   },
-  resolve: function (callStack, serverResponse) {
+  resolve: async function (callStack, serverResponse) {
+    serverResponse = await serverResponse.json()
     serverResponse.forEach((element, i) => {
       if("returned" in element){
         callStack[i].promise.resolve(element.returned);

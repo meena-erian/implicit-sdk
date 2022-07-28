@@ -7,6 +7,7 @@ from typing import Optional, TypedDict
 from django.views.decorators.csrf import csrf_exempt
 import os
 import json
+import traceback
 
 
 class FunctionIdentifier(TypedDict):
@@ -308,8 +309,8 @@ class ImplicitEndpoint:
                 if "name" in call and call['name'] in self._functions:
                     try:
                         ret = self._functions[call['name']]['ref'](*call['params'])
-                    except Exception as e:
-                        response.append({"exception": e})
+                    except Exception:
+                        response.append({"exception": traceback.format_exc()})
                     else:
                         response.append({"returned": ret})
                 else:
